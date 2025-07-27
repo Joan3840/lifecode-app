@@ -1,0 +1,1895 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LifeCode - Tu Información de Emergencia</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.js"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <meta name="google-signin-client_id" content="YOUR_GOOGLE_CLIENT_ID">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            padding: 20px 0;
+        }
+
+        .logo {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px 0;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #333;
+            border: 2px solid #e9ecef;
+        }
+
+        .btn-emergency {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+            color: white;
+        }
+
+        .btn-google {
+            background: #4285f4;
+            color: white;
+        }
+
+        .btn-facebook {
+            background: #1877f2;
+            color: white;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .contacts-section {
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        .contact-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        .contact-priority {
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            background: #667eea;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+        }
+
+        .remove-contact {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.8em;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .qr-container {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .qr-code {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            display: inline-block;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .emergency-info {
+            background: #fff3cd;
+            border: 2px solid #ffeaa7;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .emergency-header {
+            background: #ff6b6b;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .info-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .info-section h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 5px;
+        }
+
+        .contact-emergency {
+            background: #d4edda;
+            border: 2px solid #c3e6cb;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .optional-section {
+            background: #e3f2fd;
+            border: 2px solid #bbdefb;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .optional-label {
+            color: #1976d2;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        /* Login específico */
+        .login-options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .divider {
+            text-align: center;
+            margin: 20px 0;
+            position: relative;
+        }
+
+        .divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: #e9ecef;
+        }
+
+        .divider span {
+            background: white;
+            padding: 0 15px;
+            color: #666;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #667eea;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        /* QR público */
+        .public-qr-container {
+            text-align: center;
+            padding: 20px;
+            background: white;
+            border-radius: 15px;
+            margin: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .public-header {
+            background: #ff6b6b;
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .public-instructions {
+            background: #fff3cd;
+            border: 2px solid #ffeaa7;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+            color: #856404;
+        }
+
+        @media print {
+            body {
+                background: white;
+            }
+            .container {
+                max-width: none;
+            }
+            .btn, .header, .qr-scanner-btn, #scanner-overlay {
+                display: none;
+            }
+        }
+
+        /* Botón flotante para escanear QR */
+        .qr-scanner-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+            border: none;
+            border-radius: 50%;
+            box-shadow: 0 4px 20px rgba(255, 107, 107, 0.4);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+            color: white;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .qr-scanner-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 25px rgba(255, 107, 107, 0.6);
+        }
+
+        .qr-scanner-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Overlay del escáner */
+        #scanner-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 2000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #scanner-overlay.active {
+            display: flex;
+        }
+
+        .scanner-container {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            max-width: 90%;
+            max-height: 90%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .scanner-header {
+            color: #667eea;
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        #scanner-video {
+            width: 100%;
+            max-width: 300px;
+            height: 300px;
+            border-radius: 10px;
+            object-fit: cover;
+            border: 3px solid #667eea;
+        }
+
+        .scanner-instructions {
+            color: #666;
+            text-align: center;
+            margin: 15px 0;
+            font-size: 0.9em;
+        }
+
+        .scanner-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .scanner-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .scanner-btn-close {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .scanner-btn-close:hover {
+            background: #ee5a52;
+        }
+
+        .scanner-status {
+            margin-top: 10px;
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            text-align: center;
+            min-height: 20px;
+        }
+
+        .scanner-status.scanning {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .scanner-status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .scanner-status.found {
+            background: #cce5ff;
+            color: #004085;
+        }
+
+        /* Política de privacidad */
+        .privacy-checkbox {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+        }
+
+        .privacy-checkbox input[type="checkbox"] {
+            margin-top: 3px;
+            transform: scale(1.2);
+        }
+
+        .privacy-checkbox label {
+            font-size: 0.9em;
+            color: #555;
+            line-height: 1.4;
+            cursor: pointer;
+        }
+
+        .privacy-link {
+            color: #667eea;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+        .privacy-link:hover {
+            color: #764ba2;
+        }
+
+        /* Modal de política */
+        .privacy-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 3000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .privacy-modal.active {
+            display: flex;
+        }
+
+        .privacy-content {
+            background: white;
+            border-radius: 15px;
+            max-width: 90%;
+            max-height: 90%;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .privacy-header {
+            background: #667eea;
+            color: white;
+            padding: 20px;
+            border-radius: 15px 15px 0 0;
+            position: sticky;
+            top: 0;
+        }
+
+        .privacy-body {
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .privacy-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5em;
+            cursor: pointer;
+        }
+
+        .privacy-section {
+            margin-bottom: 25px;
+        }
+
+        .privacy-section h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .privacy-section p, .privacy-section li {
+            color: #555;
+            margin-bottom: 8px;
+        }
+
+        .privacy-section ul {
+            padding-left: 20px;
+        }
+
+        .privacy-highlight {
+            background: #fff3cd;
+            border: 2px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .privacy-important {
+            background: #f8d7da;
+            border: 2px solid #f5c6cb;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        /* Recomendaciones de seguridad */
+        .security-recommendations {
+            background: #fff3cd;
+            border: 2px solid #ffeaa7;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .security-item {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            border-left: 4px solid #ff6b6b;
+        }
+
+        .security-item ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+
+        .security-item li {
+            margin: 5px 0;
+            line-height: 1.4;
+        }
+
+        /* Verificación de emergencia */
+        .verification-step {
+            background: #d4edda;
+            border: 2px solid #c3e6cb;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            text-align: center;
+        }
+
+        .verification-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .verify-btn {
+            padding: 15px 25px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        .verify-emergency {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .verify-emergency:hover {
+            background: #ee5a52;
+            transform: translateY(-2px);
+        }
+
+        .verify-cancel {
+            background: #6c757d;
+            color: white;
+        }
+
+        .verify-cancel:hover {
+            background: #5a6268;
+        }
+
+        /* Alert de seguridad */
+        .security-alert {
+            background: #f8d7da;
+            border: 2px solid #f5c6cb;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            color: #721c24;
+        }
+
+        .access-log {
+            background: #e3f2fd;
+            border: 2px solid #bbdefb;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .access-log h4 {
+            color: #1976d2;
+            margin-bottom: 10px;
+        }
+
+        .log-entry {
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 5px 0;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Pantalla de Login -->
+        <div id="login-screen" class="screen active">
+            <div class="header">
+                <div class="logo">🛡️ LifeCode</div>
+                <div class="subtitle">Tu información de emergencia siempre contigo</div>
+            </div>
+            
+            <div class="card">
+                <h2 style="text-align: center; margin-bottom: 20px; color: #667eea;">Iniciar Sesión</h2>
+                
+                <div class="login-options">
+                    <button class="btn btn-google" onclick="signInWithGoogle()">
+                        🔍 Continuar con Google
+                    </button>
+                    
+                    <button class="btn btn-facebook" onclick="signInWithFacebook()">
+                        📘 Continuar con Facebook
+                    </button>
+                </div>
+
+                <div class="divider">
+                    <span>O continúa con email</span>
+                </div>
+
+                <form id="login-form">
+                    <div class="form-group">
+                        <label for="login-email">Email</label>
+                        <input type="email" id="login-email" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="login-password">Contraseña</label>
+                        <input type="password" id="login-password" required>
+                    </div>
+
+                    <div class="privacy-checkbox">
+                        <input type="checkbox" id="login-privacy" required>
+                        <label for="login-privacy">
+                            Acepto la <span class="privacy-link" onclick="showPrivacyPolicy()">Política de Protección de Datos Personales</span> y autorizo el tratamiento de mi información personal de acuerdo a los términos establecidos.
+                        </label>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">🔐 Iniciar Sesión</button>
+                </form>
+
+                <div class="divider">
+                    <span>¿No tienes cuenta?</span>
+                </div>
+
+                <button class="btn btn-secondary" onclick="showScreen('register-screen')">
+                    📝 Crear Cuenta Nueva
+                </button>
+
+                <div class="divider">
+                    <span>Acceso rápido</span>
+                </div>
+
+                <button class="btn btn-emergency" onclick="showPublicEmergencyAccess()">
+                    🚨 Ver Información de Emergencia
+                </button>
+            </div>
+        </div>
+
+        <!-- Pantalla de Registro -->
+        <div id="register-screen" class="screen">
+            <div class="header">
+                <div class="logo">🛡️ LifeCode</div>
+                <div class="subtitle">Crear cuenta nueva</div>
+            </div>
+            
+            <div class="card">
+                <h2 style="color: #667eea; margin-bottom: 20px;">📝 Crear Cuenta</h2>
+                
+                <form id="register-form">
+                    <div class="form-group">
+                        <label for="register-name">Nombre Completo</label>
+                        <input type="text" id="register-name" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="register-email">Email</label>
+                        <input type="email" id="register-email" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="register-password">Contraseña</label>
+                        <input type="password" id="register-password" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="register-confirm">Confirmar Contraseña</label>
+                        <input type="password" id="register-confirm" required>
+                    </div>
+
+                    <div class="privacy-checkbox">
+                        <input type="checkbox" id="register-privacy" required>
+                        <label for="register-privacy">
+                            He leído y acepto la <span class="privacy-link" onclick="showPrivacyPolicy()">Política de Protección de Datos Personales</span>. Autorizo el tratamiento de mi información personal y médica para los fines descritos en la política.
+                        </label>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">✅ Crear Cuenta</button>
+                </form>
+
+                <button class="btn btn-secondary" onclick="showScreen('login-screen')">
+                    🔙 Volver al Login
+                </button>
+            </div>
+        </div>
+
+        <!-- Pantalla Principal (después del login) -->
+        <div id="home-screen" class="screen">
+            <div class="header">
+                <div class="logo">🛡️ LifeCode</div>
+                <div class="subtitle">Panel de Usuario</div>
+            </div>
+
+            <div class="card">
+                <div id="user-info" class="user-info">
+                    <!-- Se llenará con datos del usuario -->
+                </div>
+                
+                <button class="btn btn-primary" onclick="showScreen('form-screen')">
+                    📝 Crear/Editar Mi LifeCode
+                </button>
+                
+                <button class="btn btn-secondary" onclick="showScreen('scan-screen')">
+                    📱 Ver Mi Código QR
+                </button>
+                
+                <button class="btn btn-emergency" onclick="showScreen('emergency-screen')">
+                    🚨 Vista de Emergencia
+                </button>
+
+                <button class="btn btn-secondary" onclick="logout()" style="margin-top: 30px;">
+                    🚪 Cerrar Sesión
+                </button>
+            </div>
+        </div>
+
+        <!-- Pantalla de Formulario -->
+        <div id="form-screen" class="screen">
+            <div class="card">
+                <h2 style="color: #667eea; margin-bottom: 20px;">📝 Crear Tu LifeCode</h2>
+                
+                <form id="emergency-form">
+                    <!-- Información Personal -->
+                    <h3 style="color: #667eea; margin-bottom: 15px;">Información Personal</h3>
+                    
+                    <div class="form-group">
+                        <label for="fullName">Nombre Completo *</label>
+                        <input type="text" id="fullName" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="birthDate">Fecha de Nacimiento *</label>
+                        <input type="date" id="birthDate" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="city">Ciudad de Residencia *</label>
+                        <input type="text" id="city" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="bloodType">Tipo de Sangre *</label>
+                        <select id="bloodType" required>
+                            <option value="">Seleccionar</option>
+                            <option value="A+">A+</option>
+                            <option value="A-">A-</option>
+                            <option value="B+">B+</option>
+                            <option value="B-">B-</option>
+                            <option value="AB+">AB+</option>
+                            <option value="AB-">AB-</option>
+                            <option value="O+">O+</option>
+                            <option value="O-">O-</option>
+                        </select>
+                    </div>
+
+                    <!-- Información Médica -->
+                    <h3 style="color: #667eea; margin: 25px 0 15px 0;">Información Médica</h3>
+                    
+                    <div class="form-group">
+                        <label for="allergies">Alergias / Condiciones Médicas</label>
+                        <textarea id="allergies" rows="3" placeholder="Ej: Alérgico a penicilina, diabético..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="medications">Medicamentos Importantes</label>
+                        <textarea id="medications" rows="3" placeholder="Ej: Insulina, anticoagulantes..."></textarea>
+                    </div>
+
+                    <!-- Contactos de Emergencia -->
+                    <h3 style="color: #667eea; margin: 25px 0 15px 0;">Contactos de Emergencia</h3>
+                    <div class="contacts-section">
+                        <div id="contacts-container">
+                            <!-- Los contactos se agregarán dinámicamente -->
+                        </div>
+                        <button type="button" class="btn btn-secondary" onclick="addContact()" id="add-contact-btn">
+                            ➕ Agregar Contacto
+                        </button>
+                    </div>
+
+                    <!-- Información Laboral Opcional -->
+                    <div class="optional-section">
+                        <div class="optional-label">📢 Información Laboral (Opcional)</div>
+                        
+                        <div class="form-group">
+                            <label for="companyName">Nombre de la Empresa</label>
+                            <input type="text" id="companyName">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="bossName">Nombre del Jefe Directo</label>
+                            <input type="text" id="bossName">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="workPhone">Teléfono de Contacto Laboral</label>
+                            <input type="tel" id="workPhone">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">🔄 Generar LifeCode</button>
+                    <button type="button" class="btn btn-secondary" onclick="showScreen('home-screen')">🏠 Volver</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Pantalla de QR -->
+        <div id="qr-screen" class="screen">
+            <div class="card">
+                <h2 style="color: #667eea; text-align: center; margin-bottom: 20px;">🎯 Tu LifeCode</h2>
+                
+                <div class="qr-container">
+                    <div class="qr-code">
+                        <canvas id="qr-canvas"></canvas>
+                    </div>
+                    <p style="margin-top: 15px; color: #666; text-align: center;">
+                        <strong>🛡️ CÓDIGO SEGURO</strong><br>
+                        Este código QR incluye protecciones contra mal uso.<br>
+                        Solo funcionará correctamente en situaciones reales de emergencia.
+                    </p>
+                    
+                    <div class="security-recommendations">
+                        <h3 style="color: #ff6b6b; margin-bottom: 15px;">🔒 Recomendaciones de Seguridad</h3>
+                        
+                        <div class="security-item">
+                            <strong>📍 Dónde colocar tu LifeCode:</strong>
+                            <ul>
+                                <li><strong>✅ RECOMENDADO:</strong> Interior del casco, guantera de la moto, billetera</li>
+                                <li><strong>✅ SEGURO:</strong> Parte interior de chaquetas, compartimento interno de maletas</li>
+                                <li><strong>❌ EVITAR:</strong> Exterior visible de vehículos, redes sociales, lugares públicos</li>
+                            </ul>
+                        </div>
+
+                        <div class="security-item">
+                            <strong>🚨 Tu código solo debe usarse en:</strong>
+                            <ul>
+                                <li>Accidentes de tránsito reales</li>
+                                <li>Emergencias médicas</li>
+                                <li>Situaciones donde estés inconsciente</li>
+                                <li>Por personal médico o de primeros auxilios</li>
+                            </ul>
+                        </div>
+
+                        <div class="security-item">
+                            <strong>⚠️ Señales de alerta:</strong>
+                            <ul>
+                                <li>Si alguien te pide escanear tu código "para practicar"</li>
+                                <li>Si recibes llamadas sospechosas mencionando tu LifeCode</li>
+                                <li>Si notas accesos inusuales (recibirás alertas)</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" onclick="printQR()">🖨️ Imprimir Código</button>
+                <button class="btn btn-secondary" onclick="shareQR()">📤 Compartir</button>
+                <button class="btn btn-secondary" onclick="showScreen('form-screen')">✏️ Editar Información</button>
+                <button class="btn btn-secondary" onclick="showScreen('home-screen')">🏠 Volver al Inicio</button>
+            </div>
+        </div>
+
+        <!-- Pantalla de Emergencia -->
+        <div id="emergency-screen" class="screen">
+            <div class="emergency-header">
+                🚨 INFORMACIÓN DE EMERGENCIA 🚨
+            </div>
+            
+            <div id="emergency-data" class="card">
+                <p style="text-align: center; color: #666;">
+                    Esta pantalla mostrará la información cuando alguien escanee tu código QR.
+                    <br><br>
+                    Primero necesitas crear tu LifeCode.
+                </p>
+            </div>
+
+            <button class="btn btn-secondary" onclick="showScreen('home-screen')">🏠 Volver al Inicio</button>
+        </div>
+
+        <!-- Pantalla de Escaneo -->
+        <div id="scan-screen" class="screen">
+            <div class="card">
+                <h2 style="color: #667eea; margin-bottom: 20px;">📱 Mi Código QR</h2>
+                
+                <div id="existing-qr" style="text-align: center;">
+                    <p style="color: #999;">No hay código guardado aún.</p>
+                </div>
+
+                <button class="btn btn-secondary" onclick="showScreen('home-screen')">🏠 Volver al Inicio</button>
+            </div>
+        </div>
+
+        <!-- Botón flotante para escanear QR (solo visible después del login) -->
+        <button class="qr-scanner-btn" onclick="startScanner()" title="Escanear código QR de emergencia" style="display: none;" id="scanner-fab">
+            📷
+        </button>
+
+        <!-- Overlay del escáner -->
+        <div id="scanner-overlay">
+            <div class="scanner-container">
+                <div class="scanner-header">📱 Escanear LifeCode</div>
+                <video id="scanner-video" autoplay playsinline></video>
+                <div class="scanner-instructions">
+                    Apunta la cámara hacia el código QR de emergencia
+                </div>
+                <div class="scanner-status" id="scanner-status"></div>
+                <div class="scanner-controls">
+                    <button class="scanner-btn scanner-btn-close" onclick="stopScanner()">
+                        ❌ Cerrar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pantalla Pública de Emergencia (accesible desde QR sin login) -->
+    <div id="public-emergency-screen" style="display: none;">
+        <!-- Verificación de emergencia -->
+        <div id="emergency-verification" style="display: block;">
+            <div class="public-header">
+                <h1 style="margin: 0; font-size: 1.8em;">🚨 VERIFICACIÓN DE EMERGENCIA</h1>
+                <p style="margin: 10px 0 0 0; opacity: 0.9;">LifeCode - Acceso Controlado</p>
+            </div>
+            
+            <div class="verification-step">
+                <h2 style="color: #ff6b6b; margin-bottom: 15px;">⚠️ IMPORTANTE</h2>
+                <p style="font-size: 1.1em; line-height: 1.5; margin-bottom: 20px;">
+                    Esta información médica es <strong>confidencial y protegida</strong>.<br>
+                    Solo debe accederse en situaciones de <strong>emergencia médica real</strong>.
+                </p>
+                
+                <div class="security-alert">
+                    <strong>🛡️ USO INDEBIDO ES SANCIONABLE:</strong><br>
+                    El acceso no autorizado a información médica está penalizado por la ley.
+                    Esta acción será registrada con fines de seguridad.
+                </div>
+
+                <p style="font-weight: bold; font-size: 1.1em; margin: 20px 0;">
+                    ¿Confirmas que esto es una <span style="color: #ff6b6b;">emergencia médica real</span>?
+                </p>
+
+                <div class="verification-buttons">
+                    <button class="verify-btn verify-emergency" onclick="confirmEmergencyAccess()">
+                        🚨 SÍ, ES EMERGENCIA
+                    </button>
+                    <button class="verify-btn verify-cancel" onclick="cancelAccess()">
+                        ❌ CANCELAR
+                    </button>
+                </div>
+
+                <div style="margin-top: 20px; font-size: 0.9em; color: #666;">
+                    <p><strong>¿Qué constituye una emergencia?</strong></p>
+                    <ul style="text-align: left; max-width: 300px; margin: 10px auto;">
+                        <li>Accidente de tránsito</li>
+                        <li>Persona inconsciente</li>
+                        <li>Crisis médica</li>
+                        <li>Situación que pone en riesgo la vida</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Información de emergencia (se muestra después de la verificación) -->
+        <div id="emergency-info-display" style="display: none;">
+            <div class="public-header">
+                <h1 style="margin: 0; font-size: 1.8em;">🚨 INFORMACIÓN DE EMERGENCIA</h1>
+                <p style="margin: 10px 0 0 0; opacity: 0.9;">LifeCode - Datos Vitales</p>
+            </div>
+            
+            <div id="public-emergency-data" class="public-qr-container">
+                <!-- Se llenará con los datos de emergencia -->
+            </div>
+            
+            <div class="access-log">
+                <h4>📋 Registro de Seguridad</h4>
+                <div class="log-entry" id="current-access">
+                    <!-- Se llenará con información del acceso actual -->
+                </div>
+            </div>
+            
+            <div class="public-instructions">
+                <strong>📱 ¿Qué es LifeCode?</strong><br>
+                LifeCode permite a las personas llevar su información médica vital 
+                en un código QR. En emergencias, proporciona acceso inmediato a 
+                datos cruciales para salvar vidas.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let contacts = [];
+        let userData = null;
+        let currentUser = null;
+        let scannerStream = null;
+        let scannerCanvas = null;
+        let scannerContext = null;
+        let scannerAnimationId = null;
+
+        // Sistema de autenticación simulado (en producción usar Firebase/Auth0)
+        const users = {}; // Base de datos simulada
+
+        // Función para cambiar pantallas
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+            
+            if (screenId === 'scan-screen') {
+                loadExistingQR();
+            }
+        }
+
+        // Funciones de autenticación
+        function signInWithGoogle() {
+            // En producción, usar Google Sign-In API
+            alert('🔍 Funcionalidad de Google Sign-In se implementará con las credenciales de producción.\n\nPor ahora, usa el login con email para probar la app.');
+        }
+
+        function signInWithFacebook() {
+            // En producción, usar Facebook SDK
+            alert('📘 Funcionalidad de Facebook Login se implementará con las credenciales de producción.\n\nPor ahora, usa el login con email para probar la app.');
+        }
+
+        // Login con email
+        document.getElementById('login-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            const privacyAccepted = document.getElementById('login-privacy').checked;
+            
+            if (!privacyAccepted) {
+                alert('❌ Debes aceptar la Política de Protección de Datos para continuar');
+                return;
+            }
+            
+            if (users[email] && users[email].password === password) {
+                currentUser = users[email];
+                // Actualizar fecha de aceptación de política
+                currentUser.privacyAcceptedDate = new Date().toISOString();
+                showUserDashboard();
+            } else {
+                alert('❌ Email o contraseña incorrectos');
+            }
+        });
+
+        // Registro
+        document.getElementById('register-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('register-name').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            const confirm = document.getElementById('register-confirm').value;
+            const privacyAccepted = document.getElementById('register-privacy').checked;
+            
+            if (!privacyAccepted) {
+                alert('❌ Debes aceptar la Política de Protección de Datos para crear una cuenta');
+                return;
+            }
+            
+            if (password !== confirm) {
+                alert('❌ Las contraseñas no coinciden');
+                return;
+            }
+            
+            if (users[email]) {
+                alert('❌ Ya existe una cuenta con este email');
+                return;
+            }
+            
+            // Crear nueva cuenta
+            users[email] = {
+                name: name,
+                email: email,
+                password: password,
+                created: new Date().toISOString(),
+                privacyAcceptedDate: new Date().toISOString(),
+                privacyVersion: '1.0',
+                lifecode: null
+            };
+            
+            currentUser = users[email];
+            alert('✅ Cuenta creada exitosamente');
+            showUserDashboard();
+        });
+
+        // Funciones para la política de privacidad
+        function showPrivacyPolicy() {
+            document.getElementById('privacy-modal').classList.add('active');
+        }
+
+        function closePrivacyPolicy() {
+            document.getElementById('privacy-modal').classList.remove('active');
+        }
+
+        function acceptPrivacyAndClose() {
+            // Si están en login, marcar el checkbox
+            const loginCheckbox = document.getElementById('login-privacy');
+            const registerCheckbox = document.getElementById('register-privacy');
+            
+            if (loginCheckbox && loginCheckbox.style.display !== 'none') {
+                loginCheckbox.checked = true;
+            }
+            
+            if (registerCheckbox && registerCheckbox.style.display !== 'none') {
+                registerCheckbox.checked = true;
+            }
+            
+            closePrivacyPolicy();
+            alert('✅ Política de Protección de Datos aceptada');
+        }
+
+        // Mostrar dashboard del usuario
+        function showUserDashboard() {
+            const userInfo = document.getElementById('user-info');
+            userInfo.innerHTML = `
+                <div class="user-avatar">${currentUser.name.charAt(0).toUpperCase()}</div>
+                <div>
+                    <strong>${currentUser.name}</strong><br>
+                    <small style="color: #666;">${currentUser.email}</small>
+                </div>
+            `;
+            
+            // Cargar datos existentes si los hay
+            if (currentUser.lifecode) {
+                userData = currentUser.lifecode;
+                loadFormData();
+            }
+            
+            // Mostrar botón de escaneo
+            document.getElementById('scanner-fab').style.display = 'flex';
+            
+            showScreen('home-screen');
+        }
+
+        // Cerrar sesión
+        function logout() {
+            currentUser = null;
+            userData = null;
+            contacts = [];
+            document.getElementById('scanner-fab').style.display = 'none';
+            showScreen('login-screen');
+        }
+
+        // Cargar datos en el formulario
+        function loadFormData() {
+            if (!userData) return;
+            
+            document.getElementById('fullName').value = userData.fullName || '';
+            document.getElementById('birthDate').value = userData.birthDate || '';
+            document.getElementById('city').value = userData.city || '';
+            document.getElementById('bloodType').value = userData.bloodType || '';
+            document.getElementById('allergies').value = userData.allergies || '';
+            document.getElementById('medications').value = userData.medications || '';
+            document.getElementById('companyName').value = userData.companyName || '';
+            document.getElementById('bossName').value = userData.bossName || '';
+            document.getElementById('workPhone').value = userData.workPhone || '';
+            
+            // Cargar contactos
+            contacts = userData.contacts || [];
+            if (contacts.length === 0) {
+                addContact(); // Agregar al menos un contacto
+            } else {
+                renderContacts();
+            }
+        }
+
+        // Acceso público a emergencia
+        function showPublicEmergencyAccess() {
+            const input = prompt('🚨 Acceso de Emergencia\n\nSi tienes un código LifeCode, pégalo aquí para ver la información de emergencia:');
+            if (input) {
+                try {
+                    if (input.includes('emergency=')) {
+                        const urlParams = new URLSearchParams(input.split('?')[1]);
+                        const emergencyData = urlParams.get('emergency');
+                        const data = JSON.parse(atob(emergencyData));
+                        showPublicEmergencyInfo(data);
+                    } else {
+                        alert('❌ Código no válido');
+                    }
+                } catch (error) {
+                    alert('❌ Error al procesar el código');
+                }
+            }
+        }
+
+        // Mostrar información pública de emergencia
+        function showPublicEmergencyInfo(data) {
+            document.querySelector('.container').style.display = 'none';
+            document.getElementById('public-emergency-screen').style.display = 'block';
+            
+            // Mostrar primero la verificación
+            document.getElementById('emergency-verification').style.display = 'block';
+            document.getElementById('emergency-info-display').style.display = 'none';
+            
+            // Guardar los datos para mostrar después de la verificación
+            window.pendingEmergencyData = data;
+        }
+
+        // Confirmar acceso de emergencia
+        function confirmEmergencyAccess() {
+            const data = window.pendingEmergencyData;
+            if (!data) return;
+            
+            // Registrar el acceso
+            const accessLog = {
+                timestamp: new Date().toISOString(),
+                userAgent: navigator.userAgent,
+                ip: 'XXX.XXX.XXX.XXX', // En producción, obtener IP real
+                location: 'Ubicación aproximada', // En producción, usar geolocalización
+                verified: true
+            };
+            
+            // Registrar en el sistema (en producción, enviar al servidor)
+            logEmergencyAccess(data.userId, accessLog);
+            
+            // Ocultar verificación y mostrar información
+            document.getElementById('emergency-verification').style.display = 'none';
+            document.getElementById('emergency-info-display').style.display = 'block';
+            
+            // Llenar información de emergencia
+            displayPublicEmergencyData(data);
+            
+            // Llenar log de acceso actual
+            document.getElementById('current-access').innerHTML = `
+                <strong>📅 Acceso:</strong> ${new Date().toLocaleString()}<br>
+                <strong>🌍 Estado:</strong> Emergencia verificada<br>
+                <strong>⏰ Tiempo transcurrido:</strong> <span id="access-timer">0 segundos</span>
+            `;
+            
+            // Iniciar timer de acceso
+            startAccessTimer();
+            
+            // Enviar notificación al propietario (simulado)
+            notifyOwnerOfAccess(data);
+        }
+
+        // Cancelar acceso no autorizado
+        function cancelAccess() {
+            alert('✅ Acceso cancelado. Si necesitas ayuda médica, llama a emergencias: 123');
+            goBackToApp();
+        }
+
+        // Mostrar datos de emergencia (después de verificación)
+        function displayPublicEmergencyData(data) {
+            const container = document.getElementById('public-emergency-data');
+            const age = new Date().getFullYear() - new Date(data.birthDate).getFullYear();
+            
+            container.innerHTML = `
+                <div class="info-section">
+                    <h3>👤 Información Personal</h3>
+                    <p><strong>Nombre:</strong> ${data.fullName}</p>
+                    <p><strong>Edad:</strong> ${age} años</p>
+                    <p><strong>Ciudad:</strong> ${data.city}</p>
+                    <p><strong>Tipo de Sangre:</strong> <span style="color: #ff6b6b; font-weight: bold; font-size: 1.5em;">${data.bloodType}</span></p>
+                </div>
+
+                <div class="info-section">
+                    <h3>🏥 Información Médica Crítica</h3>
+                    <p><strong>⚠️ Alergias/Condiciones:</strong> ${data.allergies || 'No reportadas'}</p>
+                    <p><strong>💊 Medicamentos:</strong> ${data.medications || 'No reportados'}</p>
+                </div>
+
+                <div class="info-section">
+                    <h3>📞 Contactos de Emergencia</h3>
+                    ${data.contacts.map((contact, index) => `
+                        <div class="contact-emergency">
+                            <strong>🚨 Contacto ${index + 1}: ${contact.name}</strong><br>
+                            📱 <a href="tel:${contact.phone}" style="color: #ff6b6b; font-weight: bold; font-size: 1.2em;">${contact.phone}</a>
+                            <button onclick="callContact('${contact.phone}', '${contact.name}')" class="btn" style="margin-top: 5px; padding: 5px 10px; font-size: 0.8em;">
+                                📞 Llamar Ahora
+                            </button>
+                        </div>
+                    `).join('')}
+                </div>
+
+                ${(data.companyName || data.bossName || data.workPhone) ? `
+                    <div class="info-section">
+                        <h3>🏢 Información Laboral</h3>
+                        ${data.companyName ? `<p><strong>Empresa:</strong> ${data.companyName}</p>` : ''}
+                        ${data.bossName ? `<p><strong>Jefe Directo:</strong> ${data.bossName}</p>` : ''}
+                        ${data.workPhone ? `<p><strong>📞 Laboral:</strong> <a href="tel:${data.workPhone}">${data.workPhone}</a></p>` : ''}
+                    </div>
+                ` : ''}
+                
+                <div style="margin-top: 30px; text-align: center;">
+                    <button class="btn btn-emergency" onclick="callEmergency()" style="font-size: 1.2em; padding: 20px;">
+                        🚨 LLAMAR EMERGENCIAS (123)
+                    </button>
+                    <button class="btn btn-secondary" onclick="copyEmergencyInfo()" style="margin-top: 10px;">
+                        📋 Copiar Información
+                    </button>
+                </div>
+            `;
+        }
+
+        // Funciones de seguridad y registro
+        function logEmergencyAccess(userId, accessLog) {
+            // En producción, enviar al servidor para registro
+            console.log('🔒 Acceso de emergencia registrado:', {
+                userId: userId,
+                timestamp: accessLog.timestamp,
+                verified: accessLog.verified
+            });
+            
+            // Simular almacenamiento local (en producción usar base de datos)
+            const logs = JSON.parse(localStorage.getItem('emergencyLogs') || '[]');
+            logs.push({
+                userId: userId,
+                ...accessLog
+            });
+            localStorage.setItem('emergencyLogs', JSON.stringify(logs));
+        }
+
+        function notifyOwnerOfAccess(data) {
+            // En producción, enviar notificación push/email/SMS al propietario
+            console.log('📧 Notificación enviada al propietario:', data.fullName);
+            
+            // Simulación de notificación
+            setTimeout(() => {
+                if (currentUser && currentUser.email === data.userId) {
+                    alert('📧 NOTIFICACIÓN: Tu LifeCode fue accedido en una emergencia hace unos momentos.');
+                }
+            }, 3000);
+        }
+
+        function startAccessTimer() {
+            let seconds = 0;
+            const timer = setInterval(() => {
+                seconds++;
+                const timerElement = document.getElementById('access-timer');
+                if (timerElement) {
+                    const minutes = Math.floor(seconds / 60);
+                    const remainderSeconds = seconds % 60;
+                    timerElement.textContent = minutes > 0 ? 
+                        `${minutes}m ${remainderSeconds}s` : 
+                        `${seconds} segundos`;
+                } else {
+                    clearInterval(timer);
+                }
+            }, 1000);
+        }
+
+        function callContact(phone, name) {
+            if (confirm(`¿Llamar a ${name} al ${phone}?`)) {
+                window.location.href = `tel:${phone}`;
+                
+                // Registrar la llamada
+                logEmergencyAccess(window.pendingEmergencyData?.userId, {
+                    timestamp: new Date().toISOString(),
+                    action: 'contact_called',
+                    contactName: name,
+                    contactPhone: phone
+                });
+            }
+        }
+
+        function copyEmergencyInfo() {
+            const data = window.pendingEmergencyData;
+            if (!data) return;
+            
+            const info = `
+🚨 INFORMACIÓN DE EMERGENCIA - LifeCode
+👤 Nombre: ${data.fullName}
+🩸 Tipo de Sangre: ${data.bloodType}
+⚠️ Alergias: ${data.allergies || 'No reportadas'}
+💊 Medicamentos: ${data.medications || 'No reportados'}
+📞 Contactos:
+${data.contacts.map((c, i) => `${i+1}. ${c.name}: ${c.phone}`).join('\n')}
+            `.trim();
+            
+            navigator.clipboard.writeText(info).then(() => {
+                alert('📋 Información copiada al portapapeles');
+            }).catch(() => {
+                alert('❌ No se pudo copiar la información');
+            });
+        }
+
+        // Volver a la app desde vista pública
+        function goBackToApp() {
+            document.querySelector('.container').style.display = 'block';
+            document.getElementById('public-emergency-screen').style.display = 'none';
+        }
+
+        // Llamar emergencias
+        function callEmergency() {
+            const emergencyNumber = '123'; // Cambiar por número local de emergencias
+            if (confirm(`¿Llamar al ${emergencyNumber} (Emergencias)?`)) {
+                window.location.href = `tel:${emergencyNumber}`;
+            }
+        }
+
+        // Función para iniciar el escáner
+        async function startScanner() {
+            try {
+                const overlay = document.getElementById('scanner-overlay');
+                const video = document.getElementById('scanner-video');
+                const status = document.getElementById('scanner-status');
+                
+                // Mostrar overlay
+                overlay.classList.add('active');
+                status.textContent = 'Iniciando cámara...';
+                status.className = 'scanner-status scanning';
+
+                // Solicitar acceso a la cámara
+                scannerStream = await navigator.mediaDevices.getUserMedia({
+                    video: { 
+                        facingMode: 'environment', // Cámara trasera preferida
+                        width: { ideal: 300 },
+                        height: { ideal: 300 }
+                    }
+                });
+
+                video.srcObject = scannerStream;
+                
+                // Crear canvas para procesar frames
+                if (!scannerCanvas) {
+                    scannerCanvas = document.createElement('canvas');
+                    scannerContext = scannerCanvas.getContext('2d');
+                }
+
+                status.textContent = 'Buscando código QR...';
+                
+                // Iniciar el escaneo cuando el video esté listo
+                video.addEventListener('loadedmetadata', startScanning);
+                
+            } catch (error) {
+                console.error('Error al acceder a la cámara:', error);
+                const status = document.getElementById('scanner-status');
+                status.textContent = 'Error: No se pudo acceder a la cámara';
+                status.className = 'scanner-status error';
+            }
+        }
+
+        // Función para iniciar el proceso de escaneo
+        function startScanning() {
+            const video = document.getElementById('scanner-video');
+            const status = document.getElementById('scanner-status');
+            
+            scannerCanvas.width = video.videoWidth;
+            scannerCanvas.height = video.videoHeight;
+            
+            function scanFrame() {
+                if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                    scannerContext.drawImage(video, 0, 0, scannerCanvas.width, scannerCanvas.height);
+                    const imageData = scannerContext.getImageData(0, 0, scannerCanvas.width, scannerCanvas.height);
+                    
+                    const code = jsQR(imageData.data, imageData.width, imageData.height);
+                    
+                    if (code) {
+                        status.textContent = 'Código QR encontrado! Procesando...';
+                        status.className = 'scanner-status found';
+                        
+                        // Procesar el código QR
+                        processScannedQR(code.data);
+                        return;
+                    }
+                }
+                
+                scannerAnimationId = requestAnimationFrame(scanFrame);
+            }
+            
+            scanFrame();
+        }
+
+        // Función para procesar el código QR escaneado
+        function processScannedQR(qrData) {
+            try {
+                // Verificar si es un LifeCode válido
+                if (qrData.includes('emergency=')) {
+                    const urlParams = new URLSearchParams(qrData.split('?')[1]);
+                    const emergencyData = urlParams.get('emergency');
+                    
+                    if (emergencyData) {
+                        const data = JSON.parse(atob(emergencyData));
+                        
+                        // Detener el escáner
+                        stopScanner();
+                        
+                        // Mostrar información de emergencia
+                        showPublicEmergencyInfo(data);
+                        
+                        return;
+                    }
+                }
+                
+                // Si no es un LifeCode válido
+                const status = document.getElementById('scanner-status');
+                status.textContent = 'Este no es un código LifeCode válido';
+                status.className = 'scanner-status error';
+                
+                setTimeout(() => {
+                    const status = document.getElementById('scanner-status');
+                    status.textContent = 'Buscando código QR...';
+                    status.className = 'scanner-status scanning';
+                    startScanning();
+                }, 2000);
+                
+            } catch (error) {
+                console.error('Error al procesar QR:', error);
+                const status = document.getElementById('scanner-status');
+                status.textContent = 'Error al leer el código QR';
+                status.className = 'scanner-status error';
+            }
+        }
+
+        // Función para detener el escáner
+        function stopScanner() {
+            const overlay = document.getElementById('scanner-overlay');
+            const video = document.getElementById('scanner-video');
+            
+            // Detener la animación
+            if (scannerAnimationId) {
+                cancelAnimationFrame(scannerAnimationId);
+                scannerAnimationId = null;
+            }
+            
+            // Detener el stream de la cámara
+            if (scannerStream) {
+                scannerStream.getTracks().forEach(track => track.stop());
+                scannerStream = null;
+            }
+            
+            // Limpiar el video
+            video.srcObject = null;
+            
+            // Ocultar overlay
+            overlay.classList.remove('active');
+        }
+
+        // Función para agregar contactos
+        function addContact() {
+            if (contacts.length >= 5) {
+                alert('Máximo 5 contactos permitidos');
+                return;
+            }
+
+            contacts.push({
+                name: '',
+                phone: '',
+                priority: contacts.length + 1
+            });
+
+            renderContacts();
+        }
+
+        // Función para renderizar contactos
+        function renderContacts() {
+            const container = document.getElementById('contacts-container');
+            container.innerHTML = '';
+
+            contacts.forEach((contact, index) => {
+                const contactDiv = document.createElement('div');
+                contactDiv.className = 'contact-item';
+                contactDiv.innerHTML = `
+                    <div class="contact-priority">Contacto ${contact.priority}</div>
+                    <div class="form-group">
+                        <label>Nombre</label>
+                        <input type="text" value="${contact.name}" onchange="updateContact(${index}, 'name', this.value)" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Teléfono</label>
+                        <input type="tel" value="${contact.phone}" onchange="updateContact(${index}, 'phone', this.value)" required>
+                    </div>
+                    <button type="button" class="remove-contact" onclick="removeContact(${index})">Eliminar</button>
+                `;
+                container.appendChild(contactDiv);
+            });
+
+            // Mostrar/ocultar botón de agregar
+            const addBtn = document.getElementById('add-contact-btn');
+            addBtn.style.display = contacts.length >= 5 ? 'none' : 'block';
+        }
+
+        // Actualizar contacto
+        function updateContact(index, field, value) {
+            contacts[index][field] = value;
+        }
+
+        // Eliminar contacto
+        function removeContact(index) {
+            contacts.splice(index, 1);
+            // Actualizar prioridades
+            contacts.forEach((contact, i) => {
+                contact.priority = i + 1;
+            });
+            renderContacts();
+        }
+
+        // Inicializar con un contacto
+        function initializeContacts() {
+            if (contacts.length === 0) {
+                addContact();
+            }
+        }
+
+        // Manejar envío del formulario
+        document.getElementById('emergency-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (!currentUser) {
+                alert('❌ Debes iniciar sesión primero');
+                return;
+            }
+            
+            if (contacts.length === 0 || contacts.some(c => !c.name || !c.phone)) {
+                alert('Por favor completa al menos un contacto de emergencia');
+                return;
+            }
+
+            // Recopilar datos
+            userData = {
+                userId: currentUser.email,
+                fullName: document.getElementById('fullName').value,
+                birthDate: document.getElementById('birthDate').value,
+                city: document.getElementById('city').value,
+                bloodType: document.getElementById('bloodType').value,
+                allergies: document.getElementById('allergies').value,
+                medications: document.getElementById('medications').value,
+                contacts: contacts.filter(c => c.name && c.phone),
+                companyName: document.getElementById('companyName').value,
+                bossName: document.getElementById('bossName').value,
+                workPhone: document.getElementById('workPhone').value,
+                created: new Date().toISOString()
+            };
+
+            // Guardar en el usuario
+            currentUser.lifecode = userData;
+
+            // Generar QR
+            generateQR();
+            showScreen('qr-screen');
+        });
+
+        // Generar código QR (PÚBLICO - accesible desde cualquier cámara)
+        function generateQR() {
+            const canvas = document.getElementById('qr-canvas');
+            
+            // URL pública que funciona sin la app instalada
+            const publicUrl = `https://lifecode.app/emergency?data=${btoa(JSON.stringify(userData))}`;
+            
+            // Para esta demo, usar la URL actual
+            const qrData = `${window.location.origin}${window.location.pathname}?emergency=${btoa(JSON.stringify(userData))}`;
+            
+            QRCode.toCanvas(canvas, qrData, {
+                width: 200,
+                margin: 2,
+                color: {
+                    dark: '#000000',
+                    light: '#FFFFFF'
+                }
+            }, function (error) {
+                if (error) console.error(error);
+            });
+        }
+
+        // Imprimir QR
+        function printQR() {
+            window.print();
+        }
+
+        // Compartir QR
+        function shareQR() {
+            if (navigator.share && userData) {
+                const shareUrl = `${window.location.origin}${window.location.pathname}?emergency=${btoa(JSON.stringify(userData))}`;
+                navigator.share({
+                    title: 'Mi LifeCode de Emergencia',
+                    text: `Mi información de emergencia de ${userData.fullName}`,
+                    url: shareUrl
+                }).catch(console.error);
+            } else {
+                // Fallback - copiar al portapapeles
+                const shareUrl = `${window.location.origin}${window.location.pathname}?emergency=${btoa(JSON.stringify(userData))}`;
+                navigator.clipboard.writeText(shareUrl).then(() => {
+                    alert('✅ Enlace copiado al portapapeles');
+                }).catch(() => {
+                    alert('❌ No se pudo copiar el enlace');
+                });
+            }
+        }
+
+        // Cargar QR existente
+        function loadExistingQR() {
+            if (userData) {
+                const existingDiv = document.getElementById('existing-qr');
+                existingDiv.innerHTML = `
+                    <div class="qr-code">
+                        <canvas id="existing-qr-canvas"></canvas>
+                    </div>
+                    <p style="margin-top: 15px;">Tu LifeCode de ${userData.fullName}</p>
+                    <div class="public-instructions">
+                        Este código QR funciona con cualquier cámara de teléfono.<br>
+                        No requiere tener LifeCode instalado.
+                    </div>
+                `;
+                
+                const canvas = document.getElementById('existing-qr-canvas');
+                const qrData = `${window.location.origin}${window.location.pathname}?emergency=${btoa(JSON.stringify(userData))}`;
+                
+                QRCode.toCanvas(canvas, qrData, {
+                    width: 150,
+                    margin: 2,
+                    color: {
+                        dark: '#000000',
+                        light: '#FFFFFF'
+                    }
+                });
+            }
+        }
+
+        // Mostrar información de emergencia (para usuarios logueados)
+        function displayEmergencyInfo(data) {
+            const container = document.getElementById('emergency-data');
+            const age = new Date().getFullYear() - new Date(data.birthDate).getFullYear();
+            
+            container.innerHTML = `
+                <div class="info-section">
+                    <h3>👤 Información Personal</h3>
+                    <p><strong>Nombre:</strong> ${data.fullName}</p>
+                    <p><strong>Edad:</strong> ${age} años</p>
+                    <p><strong>Ciudad:</strong> ${data.city}</p>
+                    <p><strong>Tipo de Sangre:</strong> <span style="color: #ff6b6b; font-weight: bold; font-size: 1.2em;">${data.bloodType}</span></p>
+                </div>
+
+                <div class="info-section">
+                    <h3>🏥 Información Médica</h3>
+                    <p><strong>Alergias/Condiciones:</strong> ${data.allergies || 'No reportadas'}</p>
+                    <p><strong>Medicamentos:</strong> ${data.medications || 'No reportados'}</p>
+                </div>
+
+                <div class="info-section">
+                    <h3>📞 Contactos de Emergencia</h3>
+                    ${data.contacts.map(contact => `
+                        <div class="contact-emergency">
+                            <strong>${contact.name}</strong><br>
+                            📱 ${contact.phone}
+                        </div>
+                    `).join('')}
+                </div>
+
+                ${(data.companyName || data.bossName || data.workPhone) ? `
+                    <div class="info-section">
+                        <h3>🏢 Información Laboral</h3>
+                        ${data.companyName ? `<p><strong>Empresa:</strong> ${data.companyName}</p>` : ''}
+                        ${data.bossName ? `<p><strong>Jefe Directo:</strong> ${data.bossName}</p>` : ''}
+                        ${data.workPhone ? `<p><strong>Teléfono Laboral:</strong> ${data.workPhone}</p>` : ''}
+                    </div>
+                ` : ''}
+            `;
+        }
+
+        // Verificar si hay datos de emergencia en la URL al cargar
+        window.addEventListener('load', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const emergencyData = urlParams.get('emergency');
+            
+            if (emergencyData) {
+                try {
+                    const data = JSON.parse(atob(emergencyData));
+                    // Mostrar directamente la vista pública de emergencia
+                    showPublicEmergencyInfo(data);
+                } catch (error) {
+                    console.error('Error al decodificar datos de emergencia:', error);
+                    // Si hay error, mostrar pantalla de login normal
+                    showScreen('login-screen');
+                }
+            } else {
+                // Pantalla normal de login
+                showScreen('login-screen');
+            }
+        });
+
+        // Inicializar contactos cuando sea necesario
+        initializeContacts();
+    </script>
+</body>
+</html>
